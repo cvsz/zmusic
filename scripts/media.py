@@ -13,7 +13,7 @@ from __future__ import annotations
 import shlex
 import subprocess
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from .config import StreamConfig
 from .logging import get_logger
@@ -90,10 +90,10 @@ class FFmpegCommand:
     shell execution is ever permitted.
     """
 
-    ALLOWED_INPUTS = {"file", "pipe", "rtmp", "http", "https"}
-    ALLOWED_OUTPUTS = {"file", "pipe", "rtmp"}
-    ALLOWED_CODECS = {"libx264", "aac", "copy"}
-    ALLOWED_FORMATS = {"mp4", "mpegts", "flv", "matroska"}
+    ALLOWED_INPUTS: ClassVar[set[str]] = {"file", "pipe", "rtmp", "http", "https"}
+    ALLOWED_OUTPUTS: ClassVar[set[str]] = {"file", "pipe", "rtmp"}
+    ALLOWED_CODECS: ClassVar[set[str]] = {"libx264", "aac", "copy"}
+    ALLOWED_FORMATS: ClassVar[set[str]] = {"mp4", "mpegts", "flv", "matroska"}
 
     def __init__(self) -> None:
         self._parts: list[str] = ["ffmpeg", "-y"]
@@ -157,14 +157,12 @@ def build_rtmp_output_command(
     rtmp_url: str,
     stream_key: str,
     preset_name: str = "youtube_1080p",
-    default_config: StreamConfig | None = None,
 ) -> FFmpegCommand:
     """Build an FFmpeg command to stream a file to RTMP.
 
     The command loops the input file indefinitely and streams it to the
     specified RTMP endpoint using the given preset.
     """
-    config = default_config or StreamConfig()
     preset = PRESETS.get(preset_name)
     if preset is None:
         raise ValueError(f"Unknown preset: {preset_name}")
@@ -206,13 +204,11 @@ def build_playlist_command(
     input_files: list[str],
     output_path: str,
     preset_name: str = "youtube_1080p",
-    default_config: StreamConfig | None = None,
 ) -> tuple[FFmpegCommand, str, str]:
     """Build an FFmpeg command to concatenate a playlist into a single output.
 
     Uses the concat demuxer for deterministic playlist playback.
     """
-    config = default_config or StreamConfig()
     preset = PRESETS.get(preset_name)
     if preset is None:
         raise ValueError(f"Unknown preset: {preset_name}")
@@ -257,6 +253,7 @@ def run_ffmpeg(command: FFmpegCommand, timeout: int = 3600) -> dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=timeout,
+            check=False,
         )
         return {
             "returncode": result.returncode,
@@ -283,6 +280,7 @@ def check_ffmpeg_available() -> bool:
             capture_output=True,
             text=True,
             timeout=10,
+            check=False,
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):

@@ -202,8 +202,8 @@ class DashboardEngine:
             if started_at and ended_at:
                 from datetime import datetime
 
-                start_dt = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
-                end_dt = datetime.fromisoformat(ended_at.replace("Z", "+00:00"))
+                start_dt = datetime.fromisoformat(started_at)
+                end_dt = datetime.fromisoformat(ended_at)
                 duration_seconds = (end_dt - start_dt).total_seconds()
 
             return StreamDashboardInfo(
@@ -282,11 +282,6 @@ class DashboardEngine:
             ).fetchone()[0]
         finally:
             conn.close()
-
-        # Get analytics for active agents
-        analytics: list[dict[str, Any]] = (
-            self._analytics.get_channel_analytics("__system__") if False else []
-        )
 
         return SystemMetrics(
             cpu_usage=(

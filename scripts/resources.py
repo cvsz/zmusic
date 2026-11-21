@@ -182,7 +182,7 @@ class ResourceManager:
             try:
                 self._update_usage()
                 self._check_warnings()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error("Resource monitoring error", extra={"error": str(e)})
             time.sleep(interval)
 
@@ -216,7 +216,7 @@ class ResourceManager:
             with self._lock:
                 self._usage[ResourceType.STREAM] = float(active)
         except Exception:
-            pass
+            logger.warning("Failed to update stream usage", exc_info=True)
         finally:
             conn.close()
 
@@ -349,7 +349,7 @@ class ResourceManager:
         self, stream_id: str, requirements: StreamResourceRequirements
     ) -> bool:
         """Reserve resources for a stream."""
-        can_start, results = self.can_start_stream(requirements)
+        can_start, _results = self.can_start_stream(requirements)
         if not can_start:
             return False
 
@@ -470,7 +470,7 @@ class TempFileManager:
                         cleaned += 1
                         del self._tracked_files[path]
                     except Exception:
-                        pass
+                        logger.warning("Failed to clean up file", exc_info=True)
         return cleaned
 
     def get_tracked_count(self) -> int:
@@ -540,7 +540,7 @@ class ProcessSupervisor:
 
             proc_info = self._processes[name]
             if proc_info["restarts"] >= self.max_restarts:
-                logger.error("Max restarts exceeded", extra={"process": name})
+                logger.error("Max restarts exceeded", extra={"proc_name": name})
                 return False
 
             if proc_info["restart_callback"]:
@@ -552,12 +552,12 @@ class ProcessSupervisor:
                     proc_info["healthy"] = True
                     logger.info(
                         "Process restarted",
-                        extra={"name": name, "restarts": proc_info["restarts"]},
+                        extra={"proc_name": name, "restarts": proc_info["restarts"]},
                     )
                     return True
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(
-                        "Restart failed", extra={"process": name, "error": str(e)}
+                        "Restart failed", extra={"proc_name": name, "error": str(e)}
                     )
                     return False
             return False

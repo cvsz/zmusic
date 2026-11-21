@@ -89,7 +89,7 @@ class RightsValidatorTest(unittest.TestCase):
         try:
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         self.temp_dir.cleanup()
 

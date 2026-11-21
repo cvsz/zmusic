@@ -158,7 +158,7 @@ class Scheduler:
 
         Returns (schedule_id, item_id).
         """
-        start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        start_dt = datetime.fromisoformat(start_time)
         end_dt = start_dt + timedelta(hours=duration_hours)
 
         schedule_id = self.create_schedule(

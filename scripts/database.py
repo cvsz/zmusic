@@ -83,7 +83,7 @@ def init_db(config: DatabaseConfig) -> None:
             _local.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             _local.conn.close()
         except Exception:
-            pass
+            logger.warning("Failed to close existing connection", exc_info=True)
         _local.conn = None
 
     conn = _connect(config.url)

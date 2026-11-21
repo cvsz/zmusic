@@ -35,9 +35,10 @@ POST   /api/v1/agents/{id}/run
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Callable
+from typing import Any
 
 from .events import EVENT_AGENT_STARTED, EVENT_STREAM_STARTED, EVENT_STREAM_STOPPED
 from .logging import get_logger
@@ -183,7 +184,6 @@ def validate_endpoint_data(
 
     Returns (is_valid, error_message).
     """
-    schema_name = None
     for ep in API_V1_ENDPOINTS:
         if (
             ep.path.rstrip("/").split("/")[-1]
@@ -222,7 +222,7 @@ def handle_list_channels() -> APIResponse:
         channels = [{"id": r["id"], "name": r["name"], "slug": r["slug"]} for r in rows]
         return api_response(True, {"channels": channels})
     except Exception as e:
-        logger.error("Error listing channels", exc_info=True)
+        logger.exception("Error listing channels")
         return api_response(False, error=str(e), error_code="CHANNEL_LIST_ERROR")
 
 
@@ -260,7 +260,7 @@ def handle_list_content() -> APIResponse:
         ]
         return api_response(True, {"content": content})
     except Exception as e:
-        logger.error("Error listing content", exc_info=True)
+        logger.exception("Error listing content")
         return api_response(False, error=str(e), error_code="CONTENT_LIST_ERROR")
 
 
@@ -289,7 +289,7 @@ def handle_list_playlists() -> APIResponse:
         ]
         return api_response(True, {"playlists": playlists})
     except Exception as e:
-        logger.error("Error listing playlists", exc_info=True)
+        logger.exception("Error listing playlists")
         return api_response(False, error=str(e), error_code="PLAYLIST_LIST_ERROR")
 
 
@@ -320,7 +320,7 @@ def handle_list_streams() -> APIResponse:
         ]
         return api_response(True, {"streams": streams})
     except Exception as e:
-        logger.error("Error listing streams", exc_info=True)
+        logger.exception("Error listing streams")
         return api_response(False, error=str(e), error_code="STREAM_LIST_ERROR")
 
 
@@ -371,7 +371,7 @@ def handle_stop_stream(stream_id: str) -> APIResponse:
 
         return api_response(True, {"stream_id": stream_id, "event": serialized})
     except Exception as e:
-        logger.error("Error stopping stream", exc_info=True)
+        logger.exception("Error stopping stream")
         return api_response(False, error=str(e), error_code="STREAM_STOP_ERROR")
 
 
@@ -384,22 +384,19 @@ def handle_stream_health(stream_id: str) -> APIResponse:
         # In full implementation, would query stream-specific health
         return api_response(True, {"stream_id": stream_id, "metrics": metrics})
     except Exception as e:
-        logger.error("Error getting stream health", exc_info=True)
+        logger.exception("Error getting stream health")
         return api_response(False, error=str(e), error_code="STREAM_HEALTH_ERROR")
 
 
 def handle_list_agents() -> APIResponse:
     """Handle GET /api/v1/agents."""
-    from scripts.database import get_connection
-
-    conn = get_connection()
     try:
         # In full implementation, would list registered agents
         return api_response(
             True, {"agents": [], "message": "Agent listing placeholder"}
         )
     except Exception as e:
-        logger.error("Error listing agents", exc_info=True)
+        logger.exception("Error listing agents")
         return api_response(False, error=str(e), error_code="AGENT_LIST_ERROR")
 
 
@@ -475,7 +472,6 @@ def route_api_request(
         endpoint = clean_path
         # For GET/POST on list endpoints
         if method in ("GET", "POST"):
-            handler_name = f"handle_{endpoint}_{method.lower()}"
             handler = API_HANDLERS.get(endpoint, {}).get(method.lower())
             if handler and data:
                 return handler(data)

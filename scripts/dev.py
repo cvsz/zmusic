@@ -309,7 +309,7 @@ class DevEnvironment:
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error stopping process: {e}")
 
         self._processes.clear()
@@ -331,28 +331,28 @@ class DevEnvironment:
             cmd.append("-v")
 
         logger.info("Running tests")
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, check=False)
         return result.returncode
 
     def run_lint(self) -> int:
         """Run linting checks."""
         cmd = [sys.executable, "-m", "ruff", "check", "scripts/", "tests/"]
         logger.info("Running lint")
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, check=False)
         return result.returncode
 
     def run_format(self) -> int:
         """Run code formatting."""
         cmd = [sys.executable, "-m", "black", "scripts/", "tests/"]
         logger.info("Running format")
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, check=False)
         return result.returncode
 
     def run_type_check(self) -> int:
         """Run type checking."""
         cmd = [sys.executable, "-m", "mypy", "scripts/"]
         logger.info("Running type check")
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, check=False)
         return result.returncode
 
 

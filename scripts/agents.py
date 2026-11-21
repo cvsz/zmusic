@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, ClassVar
 
 from .config import AppConfig
 from .database import get_connection
@@ -151,9 +151,7 @@ class RightsValidator:
 
             if rights.license_valid_until:
                 try:
-                    expiry = datetime.fromisoformat(
-                        rights.license_valid_until.replace("Z", "+00:00")
-                    )
+                    expiry = datetime.fromisoformat(rights.license_valid_until)
                     if expiry < datetime.now(tz=UTC):
                         failures.append(
                             f"Track {track_id}: License expired "
@@ -249,7 +247,7 @@ class MusicDirector:
     VERSION = "1.0"
 
     # Genre-to-BPM mapping (deterministic ranges)
-    GENRE_BPM: dict[str, tuple[int, int]] = {
+    GENRE_BPM: ClassVar[dict[str, tuple[int, int]]] = {
         "lofi": (60, 90),
         "ambient": (50, 80),
         "chill": (70, 100),
@@ -263,7 +261,7 @@ class MusicDirector:
     }
 
     # Theme-to-energy curve (normalized 0-1 over session duration)
-    ENERGY_CURVES: dict[str, list[float]] = {
+    ENERGY_CURVES: ClassVar[dict[str, list[float]]] = {
         "calm": [0.3, 0.35, 0.4, 0.4, 0.35, 0.3],
         "energetic": [0.5, 0.7, 0.9, 0.9, 0.7, 0.5],
         "focus": [0.4, 0.45, 0.5, 0.5, 0.45, 0.4],

@@ -247,13 +247,11 @@ def validate_agent_output(agent_name: str, output: dict[str, Any]) -> Validation
         elif not isinstance(output.get("rights"), dict):
             errors.append("rights_validator 'rights' must be a dictionary")
 
-    if agent_name == "scheduler":
-        if "schedule" not in output:
-            errors.append("scheduler output missing 'schedule' field")
+    if agent_name == "scheduler" and "schedule" not in output:
+        errors.append("scheduler output missing 'schedule' field")
 
-    if agent_name == "metadata":
-        if "title" not in output:
-            errors.append("metadata output missing 'title' field")
+    if agent_name == "metadata" and "title" not in output:
+        errors.append("metadata output missing 'title' field")
 
     valid = len(errors) == 0
     return ValidationResult(valid=valid, errors=tuple(errors))

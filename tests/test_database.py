@@ -1,6 +1,7 @@
 """Database tests for zMusic."""
 
 import os
+import sqlite3
 import tempfile
 import unittest
 
@@ -15,7 +16,7 @@ class DatabaseTest(unittest.TestCase):
             try:
                 _local.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 _local.conn.close()
-            except Exception:
+            except Exception:  # noqa: S110, BLE001
                 pass
             _local.conn = None
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -27,7 +28,7 @@ class DatabaseTest(unittest.TestCase):
             try:
                 _local.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 _local.conn.close()
-            except Exception:
+            except Exception:  # noqa: S110, BLE001
                 pass
             _local.conn = None
         self.temp_dir.cleanup()
@@ -101,7 +102,7 @@ class DatabaseTest(unittest.TestCase):
             conn.commit()
 
             # Try to insert a channel referencing a non-existent org
-            with self.assertRaises(Exception):
+            with self.assertRaises(sqlite3.IntegrityError):
                 conn.execute(
                     "INSERT INTO channels (id, organization_id, name) VALUES (?, ?, ?)",
                     ("ch-2", "non-existent-org", "Bad Channel"),
@@ -204,7 +205,7 @@ class DatabaseTest(unittest.TestCase):
             conn.commit()
 
             # Try a transaction that fails
-            with self.assertRaises(Exception), transaction() as t:
+            with self.assertRaises(sqlite3.OperationalError), transaction() as t:
                 t.execute(
                     "INSERT INTO organizations (id, name, slug) VALUES (?, ?, ?)",
                     ("org-2", "Test Org 2", "test-org-2"),

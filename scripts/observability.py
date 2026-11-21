@@ -270,7 +270,7 @@ class HealthChecker:
             )
         try:
             return check_func()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return HealthCheckResult(
                 name=name,
                 status="unhealthy",
@@ -303,7 +303,7 @@ def _check_database() -> HealthCheckResult:
         return HealthCheckResult(
             name="database", status="healthy", message="Database connected"
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return HealthCheckResult(name="database", status="unhealthy", message=str(e))
 
 
@@ -312,7 +312,7 @@ def _check_disk_space() -> HealthCheckResult:
     import shutil
 
     try:
-        total, used, free = shutil.disk_usage("/")
+        total, _used, free = shutil.disk_usage("/")
         free_percent = (free / total) * 100
         if free_percent > 20:
             return HealthCheckResult(
@@ -325,7 +325,7 @@ def _check_disk_space() -> HealthCheckResult:
         return HealthCheckResult(
             name="disk", status="unhealthy", message=f"{free_percent:.1f}% free"
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return HealthCheckResult(name="disk", status="unknown", message=str(e))
 
 

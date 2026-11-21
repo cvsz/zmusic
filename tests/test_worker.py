@@ -273,7 +273,7 @@ class DefaultPoolsTest(unittest.TestCase):
         registry = create_default_pools()
 
         # Should have all predefined queues
-        for queue_name in QUEUE_CONFIGS.keys():
+        for queue_name in QUEUE_CONFIGS:
             pool = registry.get_pool(queue_name)
             self.assertIsNotNone(pool, f"Missing pool for {queue_name}")
             self.assertEqual(pool.config.queue_name, queue_name)

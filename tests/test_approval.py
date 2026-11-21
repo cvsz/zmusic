@@ -91,7 +91,7 @@ class ApprovalManagerTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         import scripts.database as dbmod
 
@@ -181,7 +181,7 @@ class ApprovalManagerTest(unittest.TestCase):
             resource_type="content",
             resource_id="content-001",
         )
-        request2 = manager.create_approval_request(
+        _request2 = manager.create_approval_request(
             gate="rights_approval",
             channel_id="ch-001",
             resource_type="rights",

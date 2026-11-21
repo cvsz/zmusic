@@ -65,7 +65,7 @@ class IdempotencyManagerTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         import scripts.database as dbmod
 
@@ -174,7 +174,7 @@ class IdempotentDecoratorTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         import scripts.database as dbmod
 
@@ -191,7 +191,6 @@ class IdempotentDecoratorTest(unittest.TestCase):
         self.assertEqual(result, 5)
 
     def test_idempotent_decorator_cached_result(self):
-        call_count = 0
 
         @idempotent("test_func_cached")
         def test_func2(x: int, y: int) -> int:

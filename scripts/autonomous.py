@@ -218,7 +218,7 @@ class AutonomousController:
                 extra={"cycle_id": result.cycle_id, "success": True},
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             result.success = False
             result.error = str(e)
             result.completed_at = datetime.now(tz=UTC).isoformat()

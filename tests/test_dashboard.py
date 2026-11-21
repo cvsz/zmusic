@@ -85,7 +85,7 @@ class DashboardOverviewTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         # Reset the global state so get_connection() creates a fresh one
         import scripts.database as dbmod

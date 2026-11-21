@@ -150,7 +150,7 @@ class ChannelManager:
             )
         logger.info(
             "Channel created",
-            extra={"channel_id": config.channel_id, "name": config.name},
+            extra={"channel_id": config.channel_id, "channel_name": config.name},
         )
         return config
 

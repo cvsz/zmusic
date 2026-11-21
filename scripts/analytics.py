@@ -60,7 +60,6 @@ class AnalyticsCollector:
     ) -> str:
         """Record the start of a stream session. Returns the session ID."""
         session_id = str(uuid.uuid4())
-        now = datetime.now(tz=UTC).isoformat()
 
         with transaction() as conn:
             conn.execute(
@@ -132,7 +131,6 @@ class AnalyticsCollector:
         viewer_count: int,
     ) -> None:
         """Record a viewer count sample for a session."""
-        now = datetime.now(tz=UTC).isoformat()
         with transaction() as conn:
             conn.execute(
                 """
@@ -241,8 +239,8 @@ class AnalyticsCollector:
             ended_at = row["ended_at"]
             duration_seconds = 0.0
             if ended_at:
-                start_dt = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
-                end_dt = datetime.fromisoformat(ended_at.replace("Z", "+00:00"))
+                start_dt = datetime.fromisoformat(started_at)
+                end_dt = datetime.fromisoformat(ended_at)
                 duration_seconds = (end_dt - start_dt).total_seconds()
 
             watch_time_seconds = row["watch_time_seconds"] or 0

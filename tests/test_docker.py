@@ -79,7 +79,7 @@ class GenerateDockerComposeTest(unittest.TestCase):
         self.assertIn("volumes:", yaml_content)
 
         # Should contain all services
-        for svc_name in services.keys():
+        for svc_name in services:
             self.assertIn(f"  {svc_name}:", yaml_content)
 
 

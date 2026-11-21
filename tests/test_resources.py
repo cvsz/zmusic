@@ -81,7 +81,7 @@ class ResourceManagerTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         import scripts.database as dbmod
 
@@ -124,7 +124,7 @@ class ResourceManagerTest(unittest.TestCase):
             estimated_memory_mb=128.0,
             estimated_disk_mb=256.0,
         )
-        can_start, results = manager.can_start_stream(req)
+        can_start, _results = manager.can_start_stream(req)
         self.assertTrue(can_start)
 
     def test_reserve_and_release_resources(self):

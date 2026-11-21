@@ -148,16 +148,17 @@ class AIOutputValidator:
             "cmd",
             "plan",
         ]
-        for field in check_fields:
-            if field in output:
-                value = output[field]
+        for check_field in check_fields:
+            if check_field in output:
+                value = output[check_field]
                 if isinstance(value, (list, dict)):
                     # Recursively check for forbidden operations
                     if self._check_value_for_forbidden(value):
                         return True
-                elif isinstance(value, str):
-                    if value in self.policy.forbidden_operations:
-                        return True
+                elif (
+                    isinstance(value, str) and value in self.policy.forbidden_operations
+                ):
+                    return True
         return False
 
     def _check_value_for_forbidden(self, value: Any) -> bool:

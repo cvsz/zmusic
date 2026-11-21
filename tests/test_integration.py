@@ -95,7 +95,7 @@ class IntegrationTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         import scripts.database as dbmod
 
@@ -147,7 +147,7 @@ class AgentSchedulerIntegrationTest(IntegrationTest):
         self._create_test_channel("ch-integration")
 
         # Create a schedule for the channel
-        schedule_id = scheduler.create_schedule(
+        _schedule_id = scheduler.create_schedule(
             channel_id="ch-integration",
             name="Music Director Schedule",
             timezone="UTC",
@@ -345,7 +345,7 @@ class ResourcePreflightIntegrationTest(IntegrationTest):
         )
 
         # Check resources
-        can_start, results = manager.can_start_stream(requirements)
+        can_start, _results = manager.can_start_stream(requirements)
         self.assertTrue(can_start)
 
         # Reserve resources
@@ -386,7 +386,7 @@ class FullWorkflowIntegrationTest(IntegrationTest):
 
         # 2. Create schedule
         scheduler = get_scheduler()
-        schedule_id = scheduler.create_schedule(
+        _schedule_id = scheduler.create_schedule(
             channel_id="ch-workflow",
             name="Workflow Schedule",
             timezone="UTC",
@@ -396,7 +396,7 @@ class FullWorkflowIntegrationTest(IntegrationTest):
         music_director = MusicDirector()
         register_agent("music_director", music_director)
 
-        plan = music_director.create_plan(
+        _plan = music_director.create_plan(
             theme="lofi workflow",
             genre="lofi",
             duration_hours=1,
@@ -409,7 +409,7 @@ class FullWorkflowIntegrationTest(IntegrationTest):
             register_agent("rights_validator", RightsValidator())
             rights_validator = get_agent("rights_validator")
 
-        rights_result = rights_validator.validate_track("track-001")
+        rights_validator.validate_track("track-001")
         # Rights validator may pass or fail based on test data
 
         # 4. Create stream

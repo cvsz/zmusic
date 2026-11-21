@@ -295,7 +295,7 @@ class Worker:
 
         try:
             # Execute the handler
-            result = self.handler(job)
+            self.handler(job)
 
             # Mark as completed
             completed_job = Job(
@@ -318,7 +318,7 @@ class Worker:
                 extra={"worker_id": self.worker_id, "job_id": job.job_id},
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Handle failure with retry logic
             error_msg = str(e)
             logger.error(
@@ -534,7 +534,7 @@ def create_default_pools() -> JobRegistry:
         logger.info("Default handler processing", extra={"job_type": job.job_type})
         return {"status": "processed"}
 
-    for queue_name, config in QUEUE_CONFIGS.items():
+    for config in QUEUE_CONFIGS.values():
         registry.register_pool(config, default_handler)
 
     return registry

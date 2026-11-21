@@ -26,6 +26,11 @@ from .logging import get_logger
 
 logger = get_logger("zmusic.idempotency")
 
+
+class IdempotencyError(Exception):
+    """Raised when an idempotent operation cannot proceed."""
+
+
 T = TypeVar("T")
 
 
@@ -138,7 +143,7 @@ class IdempotencyManager:
                 (
                     "completed",
                     result_json,
-                    datetime.now(tz=UTC).isoformat(),
+                    now,
                     key,
                     "started",
                 ),
@@ -184,9 +189,11 @@ def idempotent(operation: str, ttl_seconds: int = 3600):
                     logger.info("Returning cached result", extra={"key": key})
                     return cast(T, existing.result if existing.result else None)
                 elif existing.status == "failed":
-                    raise Exception(f"Previous execution failed: {existing.error}")
+                    raise IdempotencyError(
+                        f"Previous execution failed: {existing.error}"
+                    )
                 elif existing.status == "started":
-                    raise Exception(f"Operation already in progress: {key}")
+                    raise IdempotencyError(f"Operation already in progress: {key}")
 
             # Start operation
             input_hash = str(hash(str(args) + str(kwargs)))
@@ -195,7 +202,7 @@ def idempotent(operation: str, ttl_seconds: int = 3600):
                 existing = manager.check_idempotency(key)
                 if existing and existing.status == "completed":
                     return cast(T, existing.result if existing.result else None)
-                raise Exception(f"Operation already in progress: {key}")
+                raise IdempotencyError(f"Operation already in progress: {key}")
 
             try:
                 with manager.lock(key):

@@ -86,7 +86,7 @@ class DevEnvironmentTest(unittest.TestCase):
         try:
             conn = get_connection()
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         import scripts.database as dbmod
 

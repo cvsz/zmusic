@@ -306,8 +306,7 @@ def check_all_approvals(channel_id: str, required_gates: list[str]) -> bool:
     """Check if all required approvals have been granted for a channel."""
     manager = get_approval_manager()
     for gate in required_gates:
-        # Check if there's an approved request for this gate
-        pending = manager.get_pending_requests(channel_id)
+        manager.get_pending_requests(channel_id)
         # Simplified check - in production would query specific gate status
     return True  # Simplified
 

@@ -137,12 +137,16 @@ class FFmpegCommandTest(unittest.TestCase):
 
 
 class RunFFmpegTest(unittest.TestCase):
-    @unittest.skipIf(not check_ffmpeg_available(), "FFmpeg not available in this environment")
+    @unittest.skipIf(
+        not check_ffmpeg_available(), "FFmpeg not available in this environment"
+    )
     def test_check_ffmpeg_available(self):
         # FFmpeg should be available in this environment
         self.assertTrue(check_ffmpeg_available())
 
-    @unittest.skipIf(not check_ffmpeg_available(), "FFmpeg not available in this environment")
+    @unittest.skipIf(
+        not check_ffmpeg_available(), "FFmpeg not available in this environment"
+    )
     def test_run_ffmpeg_invalid_command(self):
         cmd = FFmpegCommand()
         cmd.add_input("/tmp/nonexistent_file_for_test.mp4")

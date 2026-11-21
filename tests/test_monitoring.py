@@ -129,7 +129,7 @@ class StreamHealthMonitorTest(unittest.TestCase):
         if _monitor is not None:
             try:
                 _monitor.stop_all()
-            except Exception:
+            except Exception:  # noqa: S110, BLE001
                 pass
         _monitor = None
         _metrics = None
@@ -148,17 +148,16 @@ class StreamHealthMonitorTest(unittest.TestCase):
             conn.close()
 
     def tearDown(self):
-        global _monitor
         if _monitor is not None:
             try:
                 _monitor.stop_all()
-            except Exception:
+            except Exception:  # noqa: S110, BLE001
                 pass
         conn = get_connection()
         try:
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             conn.close()
-        except Exception:
+        except Exception:  # noqa: S110, BLE001
             pass
         # Retry cleanup on Windows file-lock races
         import time as _time
@@ -233,17 +232,16 @@ class GlobalInstancesTest(unittest.TestCase):
         if _monitor is not None:
             try:
                 _monitor.stop_all()
-            except Exception:
+            except Exception:  # noqa: S110, BLE001
                 pass
         _monitor = None
         _metrics = None
 
     def tearDown(self):
-        global _monitor
         if _monitor is not None:
             try:
                 _monitor.stop_all()
-            except Exception:
+            except Exception:  # noqa: S110, BLE001
                 pass
 
     def test_get_monitor_singleton(self):

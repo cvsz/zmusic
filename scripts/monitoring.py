@@ -99,7 +99,7 @@ class StreamHealthMonitor:
                 self._record_health(stream_id, health)
                 state.last_health = health
             except Exception:
-                pass
+                logger.warning("Initial health collection failed", exc_info=True)
 
             thread = threading.Thread(
                 target=self._monitor_loop,
@@ -202,7 +202,7 @@ class StreamHealthMonitor:
                 else:
                     state.consecutive_failures = 0
 
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(
                     "Monitor loop error",
                     extra={"stream_id": stream_id, "error": str(exc)},
@@ -315,7 +315,7 @@ class StreamHealthMonitor:
             # Fallback: return disk usage as a proxy if no better metric
             # In production, use psutil or read /proc/stat
             return min(100.0, (load.used / load.total) * 100)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return 0.0
 
     @staticmethod
@@ -325,7 +325,7 @@ class StreamHealthMonitor:
             # Without psutil, return a conservative estimate
             # In production, read /proc/meminfo or use psutil
             return 0.0
-        except Exception:
+        except Exception:  # noqa: BLE001
             return 0.0
 
     def stop_all(self) -> None:
