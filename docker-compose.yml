@@ -1,0 +1,165 @@
+version: '3.8'
+services:
+  api:
+    image: zmusic/api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+    - 8000:8000
+    environment:
+      ZMUSIC_DATABASE_URL: sqlite:///data/zmusic.db
+      ZMUSIC_JWT_SECRET: ${ZMUSIC_JWT_SECRET}
+      ZMUSIC_LOG_LEVEL: INFO
+    volumes:
+    - zmusic-data:/app/data
+    - zmusic-logs:/app/logs
+    depends_on: []
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    networks:
+    - zmusic-network
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/health/live
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    command:
+    - python
+    - -m
+    - scripts.api_server
+  worker:
+    image: zmusic/worker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    ports: []
+    environment:
+      ZMUSIC_DATABASE_URL: sqlite:///data/zmusic.db
+      ZMUSIC_REDIS_URL: redis://redis:6379/0
+      ZMUSIC_LOG_LEVEL: INFO
+    volumes:
+    - zmusic-data:/app/data
+    - zmusic-logs:/app/logs
+    - zmusic-media:/app/media
+    depends_on:
+    - redis
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    networks:
+    - zmusic-network
+    command:
+    - python
+    - -m
+    - scripts.worker_main
+  scheduler:
+    image: zmusic/scheduler:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    ports: []
+    environment:
+      ZMUSIC_DATABASE_URL: sqlite:///data/zmusic.db
+      ZMUSIC_LOG_LEVEL: INFO
+    volumes:
+    - zmusic-data:/app/data
+    - zmusic-logs:/app/logs
+    depends_on: []
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    networks:
+    - zmusic-network
+    command:
+    - python
+    - -m
+    - scripts.scheduler_main
+  agent-orchestrator:
+    image: zmusic/agent-orchestrator:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    ports: []
+    environment:
+      ZMUSIC_DATABASE_URL: sqlite:///data/zmusic.db
+      ZMUSIC_OPENAI_API_KEY: ${ZMUSIC_OPENAI_API_KEY}
+      ZMUSIC_LOG_LEVEL: INFO
+    volumes:
+    - zmusic-data:/app/data
+    - zmusic-logs:/app/logs
+    depends_on: []
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    networks:
+    - zmusic-network
+    command:
+    - python
+    - -m
+    - scripts.agent_orchestrator
+  media-worker:
+    image: zmusic/media-worker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.media
+    ports: []
+    environment:
+      ZMUSIC_DATABASE_URL: sqlite:///data/zmusic.db
+      ZMUSIC_LOG_LEVEL: INFO
+    volumes:
+    - zmusic-data:/app/data
+    - zmusic-logs:/app/logs
+    - zmusic-media:/app/media
+    - zmusic-temp:/tmp/zmusic
+    depends_on: []
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    networks:
+    - zmusic-network
+    command:
+    - python
+    - -m
+    - scripts.media_worker
+  stream-worker:
+    image: zmusic/stream-worker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.stream
+    ports:
+    - 1935:1935
+    environment:
+      ZMUSIC_DATABASE_URL: sqlite:///data/zmusic.db
+      ZMUSIC_YOUTUBE_CLIENT_ID: ${ZMUSIC_YOUTUBE_CLIENT_ID}
+      ZMUSIC_YOUTUBE_CLIENT_SECRET: ${ZMUSIC_YOUTUBE_CLIENT_SECRET}
+      ZMUSIC_LOG_LEVEL: INFO
+    volumes:
+    - zmusic-data:/app/data
+    - zmusic-logs:/app/logs
+    - zmusic-media:/app/media
+    - zmusic-temp:/tmp/zmusic
+    depends_on: []
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    networks:
+    - zmusic-network
+    command:
+    - python
+    - -m
+    - scripts.stream_worker
+networks:
+  zmusic-network:
+    driver: bridge
+volumes:
+  zmusic-data: {}
+  zmusic-logs: {}
+  zmusic-media: {}
+  zmusic-temp: {}

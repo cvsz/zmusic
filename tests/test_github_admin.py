@@ -15,7 +15,9 @@ class IndependentReviewerAdminTests(unittest.TestCase):
     def test_independent_approval_is_a_required_status_check(self):
         self.assertIn("verify-independent-approval", REQUIRED_CHECKS)
         payload = protection_payload()
-        self.assertIn("verify-independent-approval", payload["required_status_checks"]["contexts"])
+        self.assertIn(
+            "verify-independent-approval", payload["required_status_checks"]["contexts"]
+        )
         self.assertTrue(payload["required_status_checks"]["strict"])
 
     def test_review_policy_keeps_review_and_codeowner_requirements(self):
@@ -26,7 +28,9 @@ class IndependentReviewerAdminTests(unittest.TestCase):
         self.assertTrue(reviews["require_last_push_approval"])
 
     def test_reviewer_must_be_a_valid_login_distinct_from_owner(self):
-        self.assertEqual(validate_independent_reviewer("cvsz/ztemplate", "policedbc"), "policedbc")
+        self.assertEqual(
+            validate_independent_reviewer("cvsz/ztemplate", "policedbc"), "policedbc"
+        )
         for reviewer in ("", "invalid/login", "cvsz", "bad name"):
             with self.subTest(reviewer=reviewer), self.assertRaises(ValueError):
                 validate_independent_reviewer("cvsz/ztemplate", reviewer)

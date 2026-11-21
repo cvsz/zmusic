@@ -4,9 +4,9 @@ import os
 import tempfile
 import unittest
 
-from scripts.config import AppConfig, DatabaseConfig
-from scripts.database import get_connection, init_db, transaction
-from scripts.scheduler import Scheduler, get_scheduler, _scheduler
+from scripts.config import DatabaseConfig
+from scripts.database import get_connection, init_db
+from scripts.scheduler import Scheduler, _scheduler, get_scheduler
 
 
 class SchedulerTest(unittest.TestCase):
@@ -242,9 +242,7 @@ class SchedulerTest(unittest.TestCase):
 
     def test_deactivate_schedule(self):
         scheduler = Scheduler()
-        schedule_id = scheduler.create_schedule(
-            channel_id="ch-1", name="To Deactivate"
-        )
+        schedule_id = scheduler.create_schedule(channel_id="ch-1", name="To Deactivate")
 
         result = scheduler.deactivate_schedule(schedule_id)
         self.assertTrue(result)

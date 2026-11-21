@@ -5,7 +5,7 @@ import json
 import logging
 import unittest
 
-from scripts.logging import get_logger, setup_logging, JsonFormatter
+from scripts.logging import JsonFormatter, get_logger, setup_logging
 
 
 class LoggingTest(unittest.TestCase):

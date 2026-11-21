@@ -1,14 +1,15 @@
 """Static contract tests for the independent-review workflow and rollout script."""
 
 import os
-from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW = (ROOT / ".github/workflows/request-independent-review.yml").read_text(encoding="utf-8")
+WORKFLOW = (ROOT / ".github/workflows/request-independent-review.yml").read_text(
+    encoding="utf-8"
+)
 ROLLOUT = (ROOT / "scripts/rollout-independent-review.sh").read_text(encoding="utf-8")
 
 
@@ -40,8 +41,13 @@ class IndependentReviewWorkflowTests(unittest.TestCase):
         self.assertNotIn("REVIEWER:-policedbc", ROLLOUT)
 
     def test_rollout_uses_authenticated_clone_for_private_repositories(self):
-        self.assertIn('gh repo clone "$repo" "$repo_dir" -- --depth 1 --branch "$base"', ROLLOUT)
-        self.assertNotIn('git clone --quiet --depth 1 --branch "$base" "https://github.com/$repo.git"', ROLLOUT)
+        self.assertIn(
+            'gh repo clone "$repo" "$repo_dir" -- --depth 1 --branch "$base"', ROLLOUT
+        )
+        self.assertNotIn(
+            'git clone --quiet --depth 1 --branch "$base" "https://github.com/$repo.git"',
+            ROLLOUT,
+        )
 
     def test_rollout_executes_authenticated_clone_for_private_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -53,13 +59,13 @@ class IndependentReviewWorkflowTests(unittest.TestCase):
             gh.write_text(
                 "#!/usr/bin/env bash\n"
                 "set -euo pipefail\n"
-                "printf '%s\\n' \"$*\" >> \"$CALL_LOG\"\n"
-                "if [[ \"$1\" == api && \"$2\" == users/cvsz ]]; then printf 'User\\n'; exit 0; fi\n"
-                "if [[ \"$1\" == api && \"$2\" == --paginate ]]; then printf 'cvsz/private-repo\\tmain\\tfalse\\tfalse\\tfalse\\t\\n'; exit 0; fi\n"
-                "if [[ \"$1\" == api && \"$2\" == repos/cvsz/private-repo/collaborators/policedbc/permission ]]; then printf 'admin\\n'; exit 0; fi\n"
-                "if [[ \"$1\" == api ]]; then case \"$2\" in repos/cvsz/private-repo/contents/*|repos/cvsz/private-repo/branches/*) exit 1 ;; esac; fi\n"
-                "if [[ \"$1\" == repo && \"$2\" == clone ]]; then mkdir -p \"$4\"; exit 0; fi\n"
-                "if [[ \"$1\" == pr && \"$2\" == create ]]; then exit 0; fi\n"
+                'printf \'%s\\n\' "$*" >> "$CALL_LOG"\n'
+                'if [[ "$1" == api && "$2" == users/cvsz ]]; then printf \'User\\n\'; exit 0; fi\n'
+                'if [[ "$1" == api && "$2" == --paginate ]]; then printf \'cvsz/private-repo\\tmain\\tfalse\\tfalse\\tfalse\\t\\n\'; exit 0; fi\n'
+                'if [[ "$1" == api && "$2" == repos/cvsz/private-repo/collaborators/policedbc/permission ]]; then printf \'admin\\n\'; exit 0; fi\n'
+                'if [[ "$1" == api ]]; then case "$2" in repos/cvsz/private-repo/contents/*|repos/cvsz/private-repo/branches/*) exit 1 ;; esac; fi\n'
+                'if [[ "$1" == repo && "$2" == clone ]]; then mkdir -p "$4"; exit 0; fi\n'
+                'if [[ "$1" == pr && "$2" == create ]]; then exit 0; fi\n'
                 "exit 0\n",
                 encoding="utf-8",
             )
@@ -68,7 +74,7 @@ class IndependentReviewWorkflowTests(unittest.TestCase):
             git.write_text(
                 "#!/usr/bin/env bash\n"
                 "set -euo pipefail\n"
-                "printf 'git %s\\n' \"$*\" >> \"$CALL_LOG\"\n",
+                'printf \'git %s\\n\' "$*" >> "$CALL_LOG"\n',
                 encoding="utf-8",
             )
             git.chmod(0o755)

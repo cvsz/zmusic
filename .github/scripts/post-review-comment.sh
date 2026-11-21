@@ -12,7 +12,6 @@ set -euo pipefail
 
 PR_NUMBER="${1:?missing PR number}"
 AUDIT_RESULT="${2:?missing audit result}"
-AUTO_APPROVE_SAFE="${3:?missing auto-approve safe flag}"
 REPO="${4:?missing repo}"
 
 if [ "${AUDIT_RESULT}" = "PASSED" ]; then

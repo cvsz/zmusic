@@ -1,17 +1,14 @@
 """Media pipeline tests for zMusic."""
 
-import os
-import tempfile
 import unittest
 
 from scripts.config import StreamConfig
 from scripts.media import (
-    FFmpegCommand,
     PRESETS,
+    FFmpegCommand,
     StreamConfigOverride,
-    StreamPreset,
-    build_rtmp_output_command,
     build_playlist_command,
+    build_rtmp_output_command,
     check_ffmpeg_available,
     run_ffmpeg,
     validate_preset,

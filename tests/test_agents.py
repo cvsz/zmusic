@@ -4,7 +4,6 @@ import os
 import tempfile
 import unittest
 
-from scripts.config import AppConfig, DatabaseConfig, SecurityConfig, StreamConfig
 from scripts.agents import (
     AgentResult,
     MusicDirector,
@@ -13,7 +12,8 @@ from scripts.agents import (
     initialize_agents,
     register_agent,
 )
-from scripts.database import get_connection, init_db, transaction
+from scripts.config import AppConfig, DatabaseConfig
+from scripts.database import get_connection, init_db
 
 
 class AgentResultTest(unittest.TestCase):

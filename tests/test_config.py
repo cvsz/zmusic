@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from scripts.config import AppConfig, load_config, validate_config
+from scripts.config import load_config, validate_config
 
 
 class ConfigTest(unittest.TestCase):

@@ -9,10 +9,10 @@ from __future__ import annotations
 import sqlite3
 import threading
 import uuid
+from collections.abc import Generator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Generator
 
 from .config import DatabaseConfig
 from .logging import get_logger
@@ -24,7 +24,7 @@ _config: DatabaseConfig = DatabaseConfig()
 
 
 def _now_iso() -> str:
-    return datetime.now(tz=timezone.utc).isoformat()
+    return datetime.now(tz=UTC).isoformat()
 
 
 def _generate_uuid() -> str:
@@ -33,9 +33,9 @@ def _generate_uuid() -> str:
 
 def _connect(db_path: str) -> sqlite3.Connection:
     if db_path.startswith("sqlite:///"):
-        file_path = db_path[len("sqlite:///"):]
+        file_path = db_path[len("sqlite:///") :]
     elif db_path.startswith("sqlite://"):
-        file_path = db_path[len("sqlite://"):]
+        file_path = db_path[len("sqlite://") :]
     else:
         file_path = db_path
 
@@ -92,7 +92,9 @@ def init_db(config: DatabaseConfig) -> None:
         _create_indexes(conn)
         # Store connection for reuse by get_connection()
         _local.conn = conn
-        logger.info("Database initialized successfully", extra={"database_url": config.url})
+        logger.info(
+            "Database initialized successfully", extra={"database_url": config.url}
+        )
     except Exception:
         conn.close()
         raise
@@ -127,13 +129,16 @@ def _create_tables(conn: sqlite3.Connection) -> None:
             id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
             organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
             name TEXT NOT NULL,
+            description TEXT,
             programming_mode TEXT NOT NULL DEFAULT 'manual' CHECK (programming_mode IN ('manual', 'assisted', 'autonomous')),
             stream_resolution TEXT NOT NULL DEFAULT '1080p',
             stream_fps INTEGER NOT NULL DEFAULT 30,
             timezone TEXT NOT NULL DEFAULT 'UTC',
+            config TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-            deleted_at TEXT
+            deleted_at TEXT,
+            version INTEGER NOT NULL DEFAULT 1
         )
         """,
         """
@@ -326,6 +331,7 @@ def _create_tables(conn: sqlite3.Connection) -> None:
         CREATE TABLE IF NOT EXISTS stream_sessions (
             id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
             stream_id TEXT NOT NULL REFERENCES streams(id) ON DELETE CASCADE,
+            channel_id TEXT NOT NULL,
             viewer_count INTEGER DEFAULT 0,
             watch_time_seconds INTEGER DEFAULT 0,
             average_view_duration_seconds REAL DEFAULT 0,

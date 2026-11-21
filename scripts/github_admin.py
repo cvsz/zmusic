@@ -25,7 +25,15 @@ REQUIRED_CHECKS = (
 
 
 def gh_api(method: str, endpoint: str, payload: dict[str, Any] | None = None) -> Any:
-    cmd = ["gh", "api", "--method", method, "-H", "Accept: application/vnd.github+json", endpoint]
+    cmd = [
+        "gh",
+        "api",
+        "--method",
+        method,
+        "-H",
+        "Accept: application/vnd.github+json",
+        endpoint,
+    ]
     if payload is not None:
         cmd += ["--input", "-"]
     proc = subprocess.run(
@@ -113,7 +121,9 @@ def print_plan(repo: str, branch: str) -> None:
     print("- require approval after the latest push")
     print("- require conversation resolution")
     print("- require branch to be up to date")
-    print("- require repository variable INDEPENDENT_REVIEWER with an independent GitHub login")
+    print(
+        "- require repository variable INDEPENDENT_REVIEWER with an independent GitHub login"
+    )
     print("- require checks:")
     for check in REQUIRED_CHECKS:
         print(f"  - {check}")
@@ -166,7 +176,9 @@ def verify(repo: str, branch: str) -> list[str]:
     try:
         reviewer = configured_independent_reviewer(repo)
         if reviewer is None:
-            errors.append("repository Actions variable INDEPENDENT_REVIEWER is not configured")
+            errors.append(
+                "repository Actions variable INDEPENDENT_REVIEWER is not configured"
+            )
     except (RuntimeError, ValueError) as exc:
         errors.append(f"independent reviewer configuration not verified: {exc}")
 
@@ -211,11 +223,15 @@ def verify(repo: str, branch: str) -> list[str]:
     security = repo_state.get("security_and_analysis") or {}
     if (security.get("secret_scanning") or {}).get("status") != "enabled":
         errors.append("secret scanning is not enabled")
-    if (security.get("secret_scanning_push_protection") or {}).get("status") != "enabled":
+    if (security.get("secret_scanning_push_protection") or {}).get(
+        "status"
+    ) != "enabled":
         errors.append("secret scanning push protection is not enabled")
 
     try:
-        private_reporting = gh_api("GET", f"repos/{repo}/private-vulnerability-reporting")
+        private_reporting = gh_api(
+            "GET", f"repos/{repo}/private-vulnerability-reporting"
+        )
         if private_reporting.get("enabled") is not True:
             errors.append("private vulnerability reporting is not enabled")
     except RuntimeError as exc:
@@ -238,8 +254,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", default=DEFAULT_REPO)
     parser.add_argument("--branch", default=DEFAULT_BRANCH)
-    parser.add_argument("--apply", action="store_true", help="apply administration changes")
-    parser.add_argument("--verify", action="store_true", help="verify effective settings")
+    parser.add_argument(
+        "--apply", action="store_true", help="apply administration changes"
+    )
+    parser.add_argument(
+        "--verify", action="store_true", help="verify effective settings"
+    )
     args = parser.parse_args()
 
     require_gh()

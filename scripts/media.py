@@ -10,12 +10,9 @@ deterministically validated before execution.
 
 from __future__ import annotations
 
-import json
-import os
 import shlex
 import subprocess
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Any
 
 from .config import StreamConfig
@@ -103,14 +100,14 @@ class FFmpegCommand:
         self._inputs: list[str] = []
         self._outputs: list[str] = []
 
-    def add_global_option(self, option: str, value: str | None = None) -> "FFmpegCommand":
+    def add_global_option(self, option: str, value: str | None = None) -> FFmpegCommand:
         """Add a global FFmpeg option (before inputs)."""
         self._parts.append(option)
         if value is not None:
             self._parts.append(str(value))
         return self
 
-    def add_input(self, path: str, options: list[str] | None = None) -> "FFmpegCommand":
+    def add_input(self, path: str, options: list[str] | None = None) -> FFmpegCommand:
         """Add an input. Path is validated for safety."""
         self._validate_path(path, "input")
         self._parts.append("-i")
@@ -121,9 +118,7 @@ class FFmpegCommand:
         self._inputs.append(path)
         return self
 
-    def add_output(
-        self, path: str, options: list[str] | None = None
-    ) -> "FFmpegCommand":
+    def add_output(self, path: str, options: list[str] | None = None) -> FFmpegCommand:
         """Add an output. Path is validated for safety."""
         self._validate_path(path, "output")
         self._parts.append(path)
@@ -133,7 +128,7 @@ class FFmpegCommand:
         self._outputs.append(path)
         return self
 
-    def add_option(self, option: str, value: str | None = None) -> "FFmpegCommand":
+    def add_option(self, option: str, value: str | None = None) -> FFmpegCommand:
         """Add an option to the most recent input/output."""
         self._parts.append(option)
         if value is not None:
@@ -212,7 +207,7 @@ def build_playlist_command(
     output_path: str,
     preset_name: str = "youtube_1080p",
     default_config: StreamConfig | None = None,
-) -> FFmpegCommand:
+) -> tuple[FFmpegCommand, str, str]:
     """Build an FFmpeg command to concatenate a playlist into a single output.
 
     Uses the concat demuxer for deterministic playlist playback.
@@ -269,7 +264,7 @@ def run_ffmpeg(command: FFmpegCommand, timeout: int = 3600) -> dict[str, Any]:
             "stderr": result.stderr,
             "success": result.returncode == 0,
         }
-    except subprocess.TimeoutExpired as exc:
+    except subprocess.TimeoutExpired:
         logger.error(
             "FFmpeg timed out",
             extra={"timeout_seconds": timeout, "command": args[0]},
@@ -299,7 +294,5 @@ def validate_preset(preset_name: str) -> StreamPreset:
     preset = PRESETS.get(preset_name)
     if preset is None:
         available = ", ".join(sorted(PRESETS.keys()))
-        raise ValueError(
-            f"Unknown preset '{preset_name}'. Available: {available}"
-        )
+        raise ValueError(f"Unknown preset '{preset_name}'. Available: {available}")
     return preset

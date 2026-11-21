@@ -4,14 +4,13 @@ import os
 import tempfile
 import unittest
 
-from scripts.config import DatabaseConfig, StreamConfig
-from scripts.database import get_connection, init_db, transaction
+from scripts.config import DatabaseConfig
+from scripts.database import get_connection, init_db
 from scripts.monitoring import (
     MetricsCollector,
     StreamHealth,
     StreamHealthMonitor,
     _monitor,
-    _metrics,
     get_metrics,
     get_monitor,
 )
@@ -137,7 +136,6 @@ class StreamHealthMonitorTest(unittest.TestCase):
 
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = os.path.join(self.temp_dir.name, "test.db")
-        from scripts.config import DatabaseConfig
 
         self.config = DatabaseConfig(url=f"sqlite:///{self.db_path}")
         init_db(self.config)
@@ -164,6 +162,7 @@ class StreamHealthMonitorTest(unittest.TestCase):
             pass
         # Retry cleanup on Windows file-lock races
         import time as _time
+
         for _attempt in range(3):
             try:
                 self.temp_dir.cleanup()

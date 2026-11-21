@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone as dt_timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from .config import AppConfig
-from .database import get_connection, init_db, transaction
+from .database import get_connection, transaction
 from .logging import get_logger
 
 logger = get_logger("zmusic.scheduler")
@@ -71,7 +71,7 @@ class Scheduler:
         Returns the schedule ID.
         """
         schedule_id = str(uuid.uuid4())
-        now = datetime.now(tz=dt_timezone.utc).isoformat()
+        now = datetime.now(tz=UTC).isoformat()
 
         with transaction() as conn:
             conn.execute(
@@ -131,7 +131,7 @@ class Scheduler:
                     content_id,
                     start_time,
                     end_time,
-                    datetime.now(tz=dt_timezone.utc).isoformat(),
+                    datetime.now(tz=UTC).isoformat(),
                 ),
             )
 
@@ -158,9 +158,7 @@ class Scheduler:
 
         Returns (schedule_id, item_id).
         """
-        start_dt = datetime.fromisoformat(
-            start_time.replace("Z", "+00:00")
-        )
+        start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
         end_dt = start_dt + timedelta(hours=duration_hours)
 
         schedule_id = self.create_schedule(
@@ -214,7 +212,7 @@ class Scheduler:
             is_active=True,
         )
 
-        today = datetime.now(tz=dt_timezone.utc).date()
+        today = datetime.now(tz=UTC).date()
         for program in programs:
             start_time_str = program["start_time"]  # "HH:MM"
             duration_hours = program["duration_hours"]
@@ -223,7 +221,7 @@ class Scheduler:
             start_dt = datetime.combine(
                 today,
                 datetime.strptime(start_time_str, "%H:%M").time(),
-            ).replace(tzinfo=dt_timezone.utc)
+            ).replace(tzinfo=UTC)
             end_dt = start_dt + timedelta(hours=duration_hours)
 
             self.add_schedule_item(
@@ -255,7 +253,7 @@ class Scheduler:
         )
 
         # Find the next occurrence of each weekday
-        today = datetime.now(tz=dt_timezone.utc).date()
+        today = datetime.now(tz=UTC).date()
         for program in programs:
             weekday = program["weekday"]  # 0=Monday
             start_time_str = program["start_time"]
@@ -263,7 +261,7 @@ class Scheduler:
             content_id = program["content_id"]
 
             days_ahead = (weekday - today.weekday()) % 7
-            if days_ahead == 0 and datetime.now(tz=dt_timezone.utc).hour >= int(
+            if days_ahead == 0 and datetime.now(tz=UTC).hour >= int(
                 start_time_str.split(":")[0]
             ):
                 days_ahead = 7  # Next week if time already passed today
@@ -272,7 +270,7 @@ class Scheduler:
             start_dt = datetime.combine(
                 target_date,
                 datetime.strptime(start_time_str, "%H:%M").time(),
-            ).replace(tzinfo=dt_timezone.utc)
+            ).replace(tzinfo=UTC)
             end_dt = start_dt + timedelta(hours=duration_hours)
 
             self.add_schedule_item(
@@ -305,7 +303,7 @@ class Scheduler:
         if not content_ids:
             return schedule_id
 
-        today = datetime.now(tz=dt_timezone.utc).date()
+        today = datetime.now(tz=UTC).date()
         hours_per_content = 24.0 / len(content_ids)
 
         for i, content_id in enumerate(content_ids):
@@ -322,11 +320,13 @@ class Scheduler:
             start_dt = datetime.combine(
                 today,
                 datetime.min.time().replace(hour=start_hour),
-            ).replace(tzinfo=dt_timezone.utc)
+            ).replace(tzinfo=UTC)
             end_dt = datetime.combine(
                 today,
-                datetime.min.time().replace(hour=end_hour, minute=end_minute, second=end_second),
-            ).replace(tzinfo=dt_timezone.utc)
+                datetime.min.time().replace(
+                    hour=end_hour, minute=end_minute, second=end_second
+                ),
+            ).replace(tzinfo=UTC)
 
             self.add_schedule_item(
                 schedule_id=schedule_id,
@@ -415,7 +415,7 @@ class Scheduler:
     ) -> list[ScheduleItem]:
         """Get upcoming schedule items for a channel."""
         if from_time is None:
-            from_time = datetime.now(tz=dt_timezone.utc).isoformat()
+            from_time = datetime.now(tz=UTC).isoformat()
 
         conn = get_connection()
         rows = conn.execute(
@@ -459,11 +459,11 @@ class Scheduler:
         with transaction() as conn:
             conn.execute(
                 "UPDATE schedules SET is_active = 0, updated_at = ? WHERE id = ?",
-                (datetime.now(tz=dt_timezone.utc).isoformat(), schedule_id),
+                (datetime.now(tz=UTC).isoformat(), schedule_id),
             )
             conn.execute(
                 "UPDATE schedule_items SET deleted_at = ? WHERE schedule_id = ?",
-                (datetime.now(tz=dt_timezone.utc).isoformat(), schedule_id),
+                (datetime.now(tz=UTC).isoformat(), schedule_id),
             )
 
         logger.info(

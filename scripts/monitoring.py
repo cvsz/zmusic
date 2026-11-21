@@ -10,11 +10,12 @@ from __future__ import annotations
 import shutil
 import threading
 import time
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
 from .config import StreamConfig
-from .database import get_connection, init_db, transaction
+from .database import get_connection, transaction
 from .logging import get_logger
 
 logger = get_logger("zmusic.monitoring")
@@ -89,6 +90,17 @@ class StreamHealthMonitor:
             self._monitors[stream_id] = state
             self._stop_events[stream_id] = stop_event
 
+            # Do an initial synchronous health collection so get_health()
+            # returns a value immediately after start_monitoring().
+            # If the database is not available (e.g., in unit tests), skip
+            # the initial collection — the background loop will retry.
+            try:
+                health = self._collect_health(stream_id)
+                self._record_health(stream_id, health)
+                state.last_health = health
+            except Exception:
+                pass
+
             thread = threading.Thread(
                 target=self._monitor_loop,
                 args=(stream_id, stop_event),
@@ -135,6 +147,21 @@ class StreamHealthMonitor:
         state = self._monitors.get(stream_id)
         return state.last_health if state else None
 
+    def get_stream_status(self, stream_id: str) -> dict[str, Any]:
+        """Return stream status as a dict for dashboard use."""
+        health = self.get_health(stream_id)
+        if health is None:
+            return {
+                "status": "unknown",
+                "rtmp_status": "unknown",
+                "encoder_status": "unknown",
+            }
+        return {
+            "status": health.rtmp_status,
+            "rtmp_status": health.rtmp_status,
+            "encoder_status": health.encoder_status,
+        }
+
     def is_monitoring(self, stream_id: str) -> bool:
         """Return True if the stream is currently being monitored."""
         state = self._monitors.get(stream_id)
@@ -165,8 +192,7 @@ class StreamHealthMonitor:
                         },
                     )
                     if (
-                        state.consecutive_failures
-                        >= self.MAX_CONSECUTIVE_FAILURES
+                        state.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES
                         and state.failure_callback
                     ):
                         state.failure_callback(

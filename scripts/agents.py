@@ -8,15 +8,12 @@ validation before execution.
 from __future__ import annotations
 
 import json
-import os
-import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any
 
 from .config import AppConfig
-from .database import get_connection, init_db, transaction
+from .database import get_connection
 from .logging import get_logger
 
 logger = get_logger("zmusic.agents")
@@ -157,27 +154,21 @@ class RightsValidator:
                     expiry = datetime.fromisoformat(
                         rights.license_valid_until.replace("Z", "+00:00")
                     )
-                    if expiry < datetime.now(tz=timezone.utc):
+                    if expiry < datetime.now(tz=UTC):
                         failures.append(
                             f"Track {track_id}: License expired "
                             f"({rights.license_valid_until})"
                         )
                 except (ValueError, TypeError):
-                    failures.append(
-                        f"Track {track_id}: Invalid license expiry date"
-                    )
+                    failures.append(f"Track {track_id}: Invalid license expiry date")
 
             if rights.attribution_required:
-                failures.append(
-                    f"Track {track_id}: Attribution required"
-                )
+                failures.append(f"Track {track_id}: Attribution required")
 
         is_safe = len(failures) == 0
         return is_safe, failures
 
-    def validate_content_rights(
-        self, content_id: str
-    ) -> dict[str, Any]:
+    def validate_content_rights(self, content_id: str) -> dict[str, Any]:
         """Validate all tracks in a content item's playlist.
 
         Returns a dict with validation result and per-track details.
@@ -195,9 +186,7 @@ class RightsValidator:
             (content_id,),
         ).fetchall()
 
-        track_ids = [
-            r["track_id"] for r in row if r["track_id"] is not None
-        ]
+        track_ids = [r["track_id"] for r in row if r["track_id"] is not None]
 
         if not track_ids:
             return {
@@ -311,9 +300,7 @@ class MusicDirector:
         # Validate energy curve
         energy_key = target_mood.lower()
         if energy_key not in self.ENERGY_CURVES:
-            warnings.append(
-                f"Unknown mood '{target_mood}', using default energy curve"
-            )
+            warnings.append(f"Unknown mood '{target_mood}', using default energy curve")
             energy_curve = [0.5] * 6
         else:
             energy_curve = self.ENERGY_CURVES[energy_key]
@@ -377,9 +364,7 @@ class MusicDirector:
         }
         return strategies.get(genre, "crossfade")
 
-    def _select_track_ordering(
-        self, genre: str, mood: str
-    ) -> str:
+    def _select_track_ordering(self, genre: str, mood: str) -> str:
         """Deterministic track ordering strategy."""
         if genre in {"classical", "ambient"}:
             return "by_mood_arc"

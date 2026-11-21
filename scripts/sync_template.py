@@ -3,7 +3,6 @@
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 import urllib.error
@@ -38,10 +37,20 @@ def main():
     previous = state.get("source_ref", INITIAL_BASELINE)
     try:
         resolved = subprocess.check_output(
-            ["git", "ls-remote", f"https://github.com/{ORIGIN}.git", f"refs/heads/{args.source_ref}"],
-            text=True, timeout=30,
+            [
+                "git",
+                "ls-remote",
+                f"https://github.com/{ORIGIN}.git",
+                f"refs/heads/{args.source_ref}",
+            ],
+            text=True,
+            timeout=30,
         ).split()[0]
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, IndexError) as exc:
+    except (
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+        IndexError,
+    ) as exc:
         print(f"ERROR: Cannot resolve template source ref: {exc}", file=sys.stderr)
         return 2
     changed = []
@@ -62,14 +71,19 @@ def main():
         if local == latest:
             continue
         if local is not None and local != baseline:
-            skipped.append(f"{filename}: locally modified; manual reconciliation required")
+            skipped.append(
+                f"{filename}: locally modified; manual reconciliation required"
+            )
             continue
         changed.append((path, latest))
     for item in skipped:
         print(f"SKIP: {item}")
     # Do not advance the tracked baseline if any managed files need manual reconciliation.
     if skipped:
-        print("BLOCKED: resolve local conflicts; no automatic changes made", file=sys.stderr)
+        print(
+            "BLOCKED: resolve local conflicts; no automatic changes made",
+            file=sys.stderr,
+        )
         return 3
     if args.dry_run:
         for path, _ in changed:
@@ -81,7 +95,9 @@ def main():
         print(f"UPDATED: {path}")
     if changed or previous != resolved:
         STATE.parent.mkdir(parents=True, exist_ok=True)
-        STATE.write_text(json.dumps({"source_ref": resolved}, indent=2) + "\n", encoding="utf-8")
+        STATE.write_text(
+            json.dumps({"source_ref": resolved}, indent=2) + "\n", encoding="utf-8"
+        )
     print(f"Template sync: {len(changed)} files updated")
     return 0
 
